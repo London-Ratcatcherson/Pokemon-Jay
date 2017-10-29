@@ -1,12 +1,14 @@
+
 .startplay {
-	-moz-appearance: button;
-	-ms-appearance: button;
-	-o-appearance: button;
-	-webkit-appearance: button;
-	appearance: button;
-	text-decoration: none;
-	color: #000;
-	padding: 0.2em 0.4em;
+    display: block;
+    width: 115px;
+    height: 25px;
+    background: #4e59af;
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
 }​
 
 html, body {
@@ -17,6 +19,18 @@ html, body {
 	overflow: hidden;
 	display: block;
 }
+
+h1 {
+	text-align: center;
+}
+h2 {
+	text-align: center;
+}
+h3 {
+	text-align: center;
+}
+
+
 .canvasGameClass {
 	display: block;
 	position: absolute;
@@ -36,3 +50,55 @@ html, body {
 	right: 0;
 	bottom: 0;
 }
+
+div.YouWinDiv {
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	text: center;
+}
+
+img.make-it-fit {
+	height: 90%;
+	max-height: 90%;
+	width: 90%;
+	max-width: 90%;
+	padding-top: 40px;
+	margin: 10%;
+}
+
+.flex-container {
+	display: flex;
+	flex-flow: column;
+	flex: none;
+	background-color: lightgrey;
+}
+
+.flex-item {
+	display: flex;
+	height: auto;
+	margin: 5px;
+	font: 24px arial, sans-serif;
+	word-wrap: break-word;
+	text-align: center;
+}
+
+.flex-item-smaller {
+	display: flex;
+	height: auto;
+	margin: 5px;
+	font: 18px arial, sans-serif;
+	word-wrap: break-word;
+	text-align: center;
+}
+
+.flex-pix {
+	display: flex;
+	flex: auto;
+	margin: 5px;
+}
+
+
+

@@ -2,13 +2,13 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" >
-		<meta name="keywords" content="Jay O'Brien 50 birthday">
-		<meta name="description" content="Happy 50th birthday, Jay O'Brien!">
+		<meta name="keywords" content="Suzie and Jay's roundup">
+		<meta name="description" content="Suzie and Jay's roundup game" >
 		<meta name="viewport" content="width=device-width, user-scalable=no">
-		<title>Pokemon-Jay!</title>
+		<title>Suzie and Jay's roundup</title>
 		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 		<link rel="stylesheet" type="text/css" href="css/jaystyle.css">
-		
+
 		<style>
 			html  {
 				width: 100%;
@@ -20,9 +20,16 @@
 			}
 		</style>
 	</head>
-	<body id="bodyGameId" margin="0" >
-		<canvas id="canvasGameId" ></canvas>
+
+	<body id="theBody" margin="0" >
+		<canvas id="canvasGameId" tabindex="1" ></canvas>
+		<audio id="audioPlayerId" preload="auto" controls="false" autoplay="autoplay">
+			<source src="audio/01 Mi Rumba Echando Candela.mp3" />
+		</audio>
 		<script src="js/game.js"></script>
-		<script> playGame(); </script>
+		<script>
+			playGame();
+		</script>
+		<noscript>Sorry, you need JavaScript to play!</noscript>
 	</body>
 </html>

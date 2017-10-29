@@ -1,22 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<meta charset="utf-8">
-		<meta name="keywords" content="Jay O'Brien 50 birthday">
-		<meta name="description" content="Happy 50th birthday, Jay O'Brien!">
-		<title>You win!</title>
-		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+		<meta name="keywords" content="Save the kittens! game">
+		<meta name="description" content="Save the kittens! game">
+		<meta name="viewport" content="width=device-width, user-scalable=no">
+		<title>You won! You got the kids!!</title>
+		<link rel="shortcut icon" href="favicon.png" type="image/x-icon" />
 		<link rel="stylesheet" type="text/css" href="css/jaystyle.css">
 	</head>
+
 	<body>
-		<div>
-			<img src="img\youcaughtjay.png"/>
-			<h1>You caught all the Pokemon-Jays!!</h1>
-			<a class="startplay" href="startgame.html"><h2>Play again?</h2></a>
+		<div class="flex-container" >
+			<div class="flex-item">The family is together!</div>
+			<div class="flex-item-smaller">
+				<p id="showScore">
+			</div>
+			<div class="flex-item">
+				<a class="startplay" href="startgame.html" role="button" >Again?</a>
+			</div>
+			<div class="flex-pix">
+				<img src="img/youwin.jpg" height="400px"/>
+			</div>
 		</div>
 		<noscript>Sorry, you need JavaScript to play!</noscript>
 	</body>
+
+	<script>
+		// Show the score
+		var player = getParameterByName('player');
+		var opponent = getParameterByName('opponent');
+		var theScore = "Rescued: " + player + " Grabbed: " + opponent; 
+		document.getElementById("showScore").innerHTML = theScore;
+		
+		function getParameterByName(name, url) {
+			if (!url) url = window.location.href;
+			name = name.replace(/[\[\]]/g, "\\$&");
+			var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+				results = regex.exec(url);
+			if (!results) return null;
+			if (!results[2]) return '';
+			return decodeURIComponent(results[2].replace(/\+/g, " "));
+		}
+
+	</script>
 </html>
+
 
 
 

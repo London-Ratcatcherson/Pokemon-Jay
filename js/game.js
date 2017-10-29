@@ -1,120 +1,317 @@
+/////////////////////////////////////////////////////////
+// The game code is wrapped in one big function 
+//   which contains interior functions
+//   
 function playGame() {
+
+	/////////////////////////////////////////////////////////
+	// Globals
+
+	// debug state flag
+	var debug = true;
+
+	// Do we really need three flags?
+	var scoringActive = false;
+	var pauseActive = false;
+	var gameOver = false;
+
+	// Play rounds 0 to 5
+	var level = 0;
+	var maxLevel = 5;
+
+	// Array of keys pressed
+	var keysDown = {};
+
+	// the background object
+	var imgBackground = {
+		index: 0,
+		width: 0,
+		height: 0,
+		stretchWidth: 0,
+		stretchHeight: 0,
+		Ready: false,
+		BkgCount: 9,
+		Backgrounds: [
+			"img/Mexico-1.jpg",
+			"img/Mexico-2.jpg",
+			"img/Mexico-3.jpg",
+			"img/Mexico-4.jpg",
+			"img/Mexico-5.jpg",
+			"img/Mexico-6.jpg",
+			"img/Mexico-7.jpg",
+			"img/Mexico-8.jpg",
+			"img/Mexico-9.jpg"
+			],
+		Image: null
+	};
+
+	// the object for player, opponent and kittens
+	// speed: movement rate in pixels/second
+	// index: last face[] used (to avoid immediate repeats)
+	// width, height: face dimensions
+	// x, y: coordinate of character top left corner on canvas
+	// dX, dY: velocity in pixels/sec 
+	// vX, vY: direction (do we need this?)
+	// Ready: flag set when image is loaded
+	// Active: is this character in play?
+	// faces[]: array of character images 
+	// faceCount: number of images 
+	// Image: the current image 
+	//
+	function Character(name, speed, width, height, faces)
+	{
+		this.name = name;
+		this.score = 0;
+		this.speed = speed;
+		this.index = 0;
+		this.width = width;
+		this.height = height;
+		this.x = 0;
+		this.y = 0;
+		this.dX = 0;
+		this.dY = 0;
+		this.vX = 0;
+		this.vY = 0;
+		this.Ready = false;
+		this.Active = false;
+		this.faces = faces;
+		this.faceCount = faces.length;
+		this.Image = new Image;
+	}
+	// And the globals for player, opponent and 3 kittens
+	var player, opponent, kittenA, kittenB, kittenC;
+
+	// Background audio
+	var sfx = {
+		index: 0,
+		TrackCount: 16,
+		Tracks: [
+		"audio/01 Mi Rumba Echando Candela.mp3",
+		"audio/02 Eso No Es Na.mp3",
+		"audio/03 Manzanillo.mp3",
+		"audio/04 Yayabo.mp3",
+		"audio/05 La Guarapachanga.mp3",
+		"audio/06 Llegue Liegue-Guararey de Pastorita.mp3",
+		"audio/07 No Me Llores.mp3",
+		"audio/08 Fiti, Tete y Popo.mp3",
+		"audio/09 Fiesta Brava.mp3",
+		"audio/10 Saoco.mp3",
+		"audio/11 Baile Usted Mi Son.mp3",
+		"audio/12 Rumba Como Quiera.mp3",
+		"audio/13 Mis Compadres Puntean Son.mp3",
+		"audio/14 Caminito de Zara.mp3",
+		"audio/15 Eres la Candela.mp3",
+		"audio/16 Papa Ogun.mp3",
+		],
+		Audio: null
+	};
+
+	// End of Globals
+	/////////////////////////////////////////////////////////
+
+
+	/////////////////////////////////////////////////////////
+	// Functions
 	
 
-	// Globals
-	var win = false;		// nextLevel(), main()
-	var monstersCaught = 0; // nextLevel(), render()
-	var keysDown = {}; 		// setupKeys(), update() 
-
-
-	// 8 songs
-	var songList = [
-		"audio/01 Bombay 405 Miles.mp3",
-		"audio/12 Fear of a Brown Planet.mp3",
-		"audio/03 Secret Agent Man Theme.mp3",
-		"audio/06 The Man From U.N.C.L.E Theme.mp3",
-		"audio/12 The Saint Theme.mp3",
-		"audio/15 The Avengers Theme.mp3",
-		"audio/16 Get Smart Theme.mp3",
-		"audio/15 Swami Safari.mp3"
-	];
-	var song = new Audio();
-	var songIndex = 0;
-
-	// 12 faces
-	var playerFaces = [
-		"img/suzie1.png", 
-		"img/suzie2.png", 
-		"img/suzie3.png", 
-		"img/suzie4.png", 
-		"img/delaney1.png", 
-		"img/delaney2.png", 
-		"img/delaney3.png", 
-		"img/delaney4.png", 
-		"img/jerrick1.png", 
-		"img/jerrick2.png", 
-		"img/jerrick3.png", 
-		"img/jerrick4.png" 
-		];
-	var player = {
-		height: 64,
-		width: 48,
-		speed: 4, // movement in pixels per second
-		index: 0, // last face index
-		x: 0,
-		y: 0,
-		dX: 0,
-		dY: 0,
-		vX: 0,
-		vY: 0
-	};
-	// player image
-	var playerReady = false;
-	var playerImage = new Image();
-	playerImage.onload = function () {
-		playerReady = true;
-		debugWrite("player.onload");
-	};
-
-	// 8 faces
-	var monsterFaces = [
-			"img/jay1.png", 
+	//////////////////////////////////////////////////////////////
+	// Initialize the characters
+	//   Only called once at start of game
+	function initCharacters()
+	{
+		debugWrite("initCharacters");
+		
+		// Set up the player, opponent and three kittens
+		player = new Character("player", 1, 48, 64,
+			["img/suzie1.png", 
+			"img/suzie2.png", 
+			"img/suzie3.png", 
+			"img/suzie4.png", 
+			"img/suzie5.png"]
+			);
+		opponent = new Character("opponent", 8, 64, 96,
+			["img/jay1.png", 
 			"img/jay2.png", 
 			"img/jay3.png", 
 			"img/jay4.png", 
 			"img/jay5.png", 
 			"img/jay6.png", 
 			"img/jay7.png", 
-			"img/jay8.png"
-			];
-	var monster = {
-		height: 64,
-		width: 48,
-		speed: 16, // movement in pixels per second
-		index: 0,
-		x: 0,
-		y: 0,
-		dX: 0,
-		dY: 0
-	};
-	// Monster image
-	var monsterReady = false;
-	var monsterImage = new Image();
-	monsterImage.onload = function () {
-		monsterReady = true;
-		debugWrite("monster.onload");
-	};
+			"img/jay8.png"]);
+		kittenA = new Character("kittenA", 1, 36, 48,
+			["img/delaney1.png", 
+			"img/jerrick1.png",  
+			"img/delaney2.png",  
+			"img/jerrick2.png",  
+			"img/delaney3.png",  
+			"img/jerrick3.png",  
+			"img/delaney4.png",  
+			"img/jerrick4.png"]);
+		kittenB = new Character("kittenB", 1, 36, 48,
+			["img/delaney1.png", 
+			"img/jerrick1.png",  
+			"img/delaney2.png",  
+			"img/jerrick2.png",  
+			"img/delaney3.png",  
+			"img/jerrick3.png",  
+			"img/delaney4.png",  
+			"img/jerrick4.png"]);
+		kittenC = new Character("kittenC", 1, 36, 48,
+			["img/delaney1.png", 
+			"img/jerrick1.png",  
+			"img/delaney2.png",  
+			"img/jerrick2.png",  
+			"img/delaney3.png",  
+			"img/jerrick3.png",  
+			"img/delaney4.png",  
+			"img/jerrick4.png"]);
+	} // function initCharacters()
+	//////////////////////////////////////////////////////////////
 
 
+	//////////////////////////////////////////////////////////////
+	// Event listener callbacks
 
-	// Returns a random integer between min (inclusive) and max (exclusive)
-	function getRandomArbitrary(min, max) {
-		var index = Math.random() * (max - min) + min;
-		return index.toFixed(0);
+	// Keyboard interface not working right now (but not really needed)
+	var evtKeyDown = function(e) {
+		keysDown[e.keyCode] = true;
+		debugWrite("keydown " + keyCode);
+	}
+	var evtKeyUp = function(e) {
+		delete keysDown[e.keyCode];
+		debugWrite("keyup " + keyCode);
 	}
 
-	// debug log
-	var debug = false;
-	var debugLog = ["No comment"];
-	function debugWrite(s) {
-		debugLog.push(s);
-	}
-	function debugRead() {
-		return debugLog[debugLog.length -1];
+	var evtMouseMove = function(e) {
+		if (e.clientX > player.x) {
+			player.vX = 1;
+		}
+		if (e.clientX < player.x) {
+			player.vX = -1;
+		}
+		if (e.clientY > player.y) {
+			player.vY = 1;
+		}
+		if (e.clientY < player.y) {
+			player.vY = -1;
+		}
+		debugWrite("mouse X: " + e.clientX + " " + player.x + "  :player X  vX:" + player.vX);
+		debugWrite("mouse Y: " + e.clientY + " " + player.y + "  :player Y  vY:" + player.vY);
+		debugWrite("speed: " + player.speed + "  dX: " + player.dX + "  dY: " + player.dY);
 	}
 
+	var evtTouchMove = function(e) {
+		// Stop browser processing further touch events
+		e.preventDefault();
 
-	// One time game setup
+		if (e.clientX > player.x) {
+			player.vX = 1;
+		}
+		if (e.clientX < player.x) {
+			player.vX = -1;
+		}
+		if (e.clientY > player.y) {
+			player.vY = 1;
+		}
+		if (e.clientY < player.y) {
+			player.vY = -1;
+		}
+		debugWrite("touch X: " + e.clientX + " " + player.x + "  :player X  vX:" + player.vX);
+		debugWrite("touch Y: " + e.clientY + " " + player.y + "  :player Y  vY:" + player.vY);
+	}
+
+	var evtTouchStart = function(e) {
+		// Stop browser processing further touch events
+		e.preventDefault();
+		debugWrite("touch start");
+	}
+	var evtTouchEnd = function(e) {
+		// Stop browser processing further touch events
+		e.preventDefault();
+		debugWrite("touch end");
+	}
+	var evtTouchCancel = function(e) {
+		// Stop browser processing further touch events
+		e.preventDefault();
+		debugWrite("touch cancel");
+	}
+
+	//
+	//////////////////////////////////////////////////////////////
+
+
+	//////////////////////////////////////////////////////////////
+	// One time initialization
+	//
 	function setupGame() {
 
-		// Prepare play area 
-		var canvas = document.getElementById("canvasGameId");
-		var ctx = canvas.getContext("2d");
-		canvas.width = document.body.clientWidth;
-		canvas.height = document.body.clientHeight;
-		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+		debugWrite("setupGame");
+		// Setup the audio
+ 		sfx.Audio = document.getElementById("audioPlayerId");
+		sfx.Audio.controls = false;
 
-		// Set timer so resize events can accumulate before resetting the game 
+		// initialize the characters
+		initCharacters();
+
+		// Scale canvas and background to fit the browser window
+		var canvas = document.getElementById("canvasGameId");
+		imgBackground.stretchWidth = canvas.width = document.body.clientWidth;
+		imgBackground.stretchHeight = canvas.height = document.body.clientHeight;
+
+		// Toggle the background image to "Ready" once loaded
+		imgBackground.Image = new Image();
+		imgBackground.Image.onload = function() {
+			imgBackground.Ready = true;
+			debugWrite("imgBackground.Image.onload");
+		};
+
+		// toggle each character image to "Ready" once loaded
+		opponent.Image.onload = function () {
+			opponent.Ready = true;
+			debugWrite("opponent.Image.onload");
+		};
+		player.Image.onload = function () {
+			player.Ready = true;
+			debugWrite("player.Image.onload");
+		};
+		kittenA.Image.onload = function () {
+			kittenA.Ready = true;
+			debugWrite("kittenA.Image.onload");
+		};
+		kittenB.Image.onload = function () {
+			kittenB.Ready = true;
+			debugWrite("kittenB.Image.onload");
+		};
+		kittenC.Image.onload = function () {
+			kittenC.Ready = true;
+			debugWrite("kittenC.Image.onload");
+		};
+
+
+		// Setup UI listeners for kbd, mouse, touch
+		// Keyboard ui (attached to window)
+		// NOTE: keyboard UI not working
+		canvas.addEventListener("keydown", evtKeyDown, false);
+		canvas.addEventListener("keyup", evtKeyUp, false);
+
+		// Mouse ui (attached to canvas)
+		// Mouse / touch change player acceleration.
+		// If the pointer x/y position is the left/top of the player 
+		//   top left corner, acceleration change flag is set to decrease.
+		//   
+		// If the pointer x/y position is the right/bottom of the player 
+		//   top left corner, acceleration change flag is set to increase.
+		// The acceleration is added in function update()
+		//
+		canvas.addEventListener("mousemove", evtMouseMove, false);
+		
+		// Touch needs some more events to keep the touch from continuing
+		canvas.addEventListener("touchstart", evtTouchStart, false);
+		canvas.addEventListener("touchend", evtTouchEnd, false);
+		canvas.addEventListener("touchcancel", evtTouchCancel, false);
+		canvas.addEventListener("touchmove", evtTouchMove, false);
+
+		// Set a timer so resize events clear before resetcallback invoked
 		var timer_id = undefined;
 		window.addEventListener("resize", function(e) {
 			if (timer_id != undefined) {
@@ -126,145 +323,241 @@ function playGame() {
 				resizeCallback()
 			}, 1500);
 		}, false);
+	} // function SetupGame()
+	//////////////////////////////////////////////////////////////
 
-		// Keyboard ui (attached to window)
-		window.addEventListener("keydown", function (e) {
-			keysDown[e.keyCode] = true;
-		}, false);
-		window.addEventListener("keyup", function (e) {
-			delete keysDown[e.keyCode];
-		}, false);
-
-		// Mouse ui (attached to canvas)
-		// Mouse / touch change player acceleration.
-		// If the pointer x/y position is the left/top of the player 
-		//   top left corner, acceleration change flag is set to 
-		//   decrease.
-		// If the pointer x/y position is the right/bottom of the player 
-		//   top left corner, acceleration change flag is set to 
-		//   increase.
-		
-		// The acceleration is added in function update()
-		//			
-		canvas.addEventListener("mousemove", function(e) {
-			if (e.clientX > player.x) 
-			{
-				player.vX = 1;
-			}
-			if (e.clientX < player.x) 
-			{
-				player.vX = -1;
-			}
-			if (e.clientY > player.y) 
-			{
-				player.vY = 1;
-			}
-			if (e.clientY < player.y) 
-			{
-				player.vY = -1;
-			}
-		}, false);
-
-		// Touch ui (attached to canvas)
-		canvas.addEventListener("touchmove", function(e) {
-			e.preventDefault();
-			if (e.clientX > player.x) 
-			{
-				player.vX = 1;
-			}
-			if (e.clientX < player.x) 
-			{
-				player.vX = -1;
-			}
-			if (e.clientY > player.y) 
-			{
-				player.vY = 1;
-			}
-			if (e.clientY < player.y) 
-			{
-				player.vY = -1;
-			}
-			// If you just want to put the client under the users pointer,
-			//   use these instead
-			// player.x = e.clientX;
-			// player.y = e.clientY;
-		}, false);
-	} // function setupGame()
-
-	// Resize triggers the next level
-	function resizeCallback() {
-		nextLevel();
-	}
-
-	// Check for player win, else start the next game level
-	function nextLevel() {
-		song.pause();
-		if (8 < ++monstersCaught) {
-			// You win!
-			win = true;
-		} else {
-			// Keep playing
-			reset();
+	// send debug msg to console if debug flag set
+	function debugWrite(s) {
+		if (debug == true) {
+			console.log(s);
 		}
 	}
 
-	// Reset the game when the player catches a monster
-	var reset = function () {
+	// Returns a random number between min (inclusive) and max (exclusive)
+	function getRandomArbitrary(min, max) {
+		var index = Math.random() * (max - min) + min;
+		return index.toFixed(0);
+	}
 
+	// Keep playing? 
+	function haveWeWon() {
+		debugWrite("haveWeWon level " + level);
+		
+		// Turn off characters, disable scoring
+		scoringActive = false;
+		player.Ready = opponent.Ready = kittenA.Ready = kittenB.Ready = kittenC.Ready = false;
+		
+		// 3 second timeout function that toggles the "pause" flag
+		pauseActive = true;
+		setTimeout(function() { pauseActive = false; }, 3000);
+
+		if (maxLevel < level) {
+			gameOver = true;
+		} else {
+			// Keep playing
+			++level;
+		}
+	}
+
+
+
+	// When the window is resized, reset the game (new level)
+	function resizeCallback() {
+		debugWrite("resizeCallback");
+
+		haveWeWon();
+	}
+
+	// Randomly position a character 
+	function setupCharacter(t, width, height)
+	{
+		var x  = t.width + (Math.random() * (width - (t.width * 2)));
+		t.x = Math.floor(x);
+		var y = t.height + (Math.random() * (height - (t.height * 2)));
+		t.y = Math.floor(y);
+		// Set t velocity
+		var z;
+		do {
+			z = Math.floor(getRandomArbitrary(-2, 2));
+		} while (z == 0);
+		t.dX = z;
+		do {
+			z = Math.floor(getRandomArbitrary(-2, 2));
+		} while (z == 0);
+		t.dY = z;
+
+		// Activate
+		t.Active = true;
+		debugWrite("setupCharacter: " + t.name + " x: " + t.x + " y:" + t.y + " speed: " + t.dX + " "+ t.dY);
+	}
+
+	// Position a character out of play
+	function setupCharacterOff(t, width, height)
+	{
+		t.x = width * -1;
+		t.y = width * -1;
+		t.speed = t.dX = t.dY = t.vX = t.vY = 0;
+
+		// Don't activate
+		t.Active = t.Ready = false;
+
+		debugWrite("setupCharacterOff: " + t.name + " x: " + t.x + " y:" + t.y + " speed: " + t.dX + " "+ t.dY);
+	}
+
+	// Bounce off walls by reversing velocity
+	function wallBounce(t, width, height, mod)
+	{
+		if ((0 > t.x) || (width < t.x + t.width)){ 
+			t.dX *= -(mod);
+		}
+		if ((0 > t.y ) || (height < t.y + t.height)){
+			t.dY *= -(mod);
+		}
+	}
+
+	// Check for collision!
+	function collision(one, two) {
+		if (one.Ready & two.Ready) {
+			if (
+				   one.x <= (two.x + one.width)
+				&& two.x <= (one.x + two.width)
+				&& one.y <= (two.y + one.height)
+				&& two.y <= (one.y + two.height)
+			) {
+				debugWrite("collision " + one.name + " " + two.name);
+				// Touching
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// Saved a kitten bookkeeping (move out of play, turn off)
+	function saveKitten(t, kitten)
+	{
+		++t.score;
+		setupCharacterOff(kitten, kitten.width, kitten.height);
+
+		debugWrite("saveKitten " + kitten.name + " score " + t.score);
+	}
+
+		// Grabbed a kitten bookkeeping (move out of play, turn off)
+	function grabKitten(t, kitten)
+	{
+		++t.score;
+		setupCharacterOff(kitten, kitten.width, kitten.height);
+
+		debugWrite("grabKitten " + kitten.name + " score " + t.score);
+	}
+
+
+
+
+	//////////////////////////////////////////////////////////////
+	// Reset the game when A) resize event; 
+	//   B) player/opponent collision
+	//
+	var reset = function () {
+		debugWrite("reset, level " + level);
+	
 		// Reset canvas dimensions in case of resize / rotation
 		var canvas = document.getElementById("canvasGameId");
-		canvas.width = document.body.clientWidth;
-		canvas.height = document.body.clientHeight;
-		
+		imgBackground.stretchWidth = canvas.width = document.body.clientWidth;
+		imgBackground.stretchHeight = canvas.height = document.body.clientHeight;
+
+		// New faces for background, player, opponent
+		var index;
+		do {
+			index = getRandomArbitrary(0, imgBackground.BkgCount);
+		} while  ((index == imgBackground.index) || (index >= imgBackground.BkgCount));
+		imgBackground.index = index;
+		imgBackground.Image.src = imgBackground.Backgrounds[index];
+		do {
+			index = getRandomArbitrary(0, opponent.faceCount);
+		} while  ((index == opponent.index) || (index >= opponent.faceCount));
+		opponent.index = index;
+		opponent.Image.src = opponent.faces[index];
+		do {
+			index = getRandomArbitrary(0, player.faceCount);
+		} while  ((index == player.index) || (index >= player.faceCount));
+		player.index = index;
+		player.Image.src = player.faces[index];
+		player.dX = 0;
+		player.dY = 0;
+
+
+		//  New faces for all 3 kittens, with no onscreen repeats
+		do {
+			index = getRandomArbitrary(0, kittenA.faceCount);
+		} while  ((index == kittenA.index) || (index >= kittenA.faceCount));
+		kittenA.index = index;
+		// Wrap around index if out of bounds
+		if (kittenA.faceCount <= index + 2) {
+			index = 0;
+		}
+		kittenB.index = index + 1;
+		kittenC.index = index + 2;
+		kittenA.Image.src = kittenA.faces[kittenA.index];
+		kittenB.Image.src = kittenB.faces[kittenB.index];
+		kittenC.Image.src = kittenC.faces[kittenC.index];
+		kittenA.dX = kittenB.dX = kittenC.dX = 0;
+		kittenA.dY = kittenB.dY = kittenC.dY = 0;
+		kittenA.x = kittenB.x = kittenC.x = 0;
+		kittenA.y = kittenB.y = kittenC.y = 0;
+
+		// New sound
+		do {
+			index = getRandomArbitrary(0, sfx.TrackCount);
+		} while  ((index == sfx.index) || (index >= sfx.TrackCount));
+		sfx.index = index;
+		sfx.Audio.src = sfx.Tracks[index];
+
 		// Setup the player in the middle of the canvas
 		player.x = canvas.width / 2;
 		player.y = canvas.height / 2;
 
-		// New Monster, player faces, new music
-		var index;
-		do {
-			index = getRandomArbitrary(0, 8);
-		} while  ((index == monster.index) || (index > 7));
-		monster.index = index;
-		monsterImage.src = monsterFaces[index];
-		do {
-			index = getRandomArbitrary(0, 12);
-		} while  ((index == player.index) || (index > 11));
-		player.index = index;
-		playerImage.src = playerFaces[index];
-		player.dX = 0;
-		player.dY = 0;
-		do {
-			index = getRandomArbitrary(0, 8);
-		} while  ((index == songIndex) || (index > 7));
-		songIndex = index;
-		song.src = songList[index];
+		// Throw the opponent somewhere on the screen randomly
+		setupCharacter(opponent, canvas.width, canvas.height);
 
-		// Throw the monster somewhere on the screen randomly
-		var x  = monster.width + (Math.random() * (canvas.width - (monster.width * 2)));
-		monster.x = Math.round(x);
-		var y = monster.height + (Math.random() * (canvas.height - (monster.height * 2)));
-		monster.y = Math.round(y);
-		// Set monster velocity
-		var z;
+		// Add kittens at higher levels
+		// Position them so they do not start collided with opponent 
 		do {
-			z = Math.round(getRandomArbitrary(-2, 2));
-		} while (z == 0);
-		monster.dX = z;
-		do {
-			z = Math.round(getRandomArbitrary(-2, 2));
-		} while (z == 0);
-		monster.dY = z;
+			setupCharacter(kittenA, canvas.width, canvas.height);
+		} while (collision(opponent, kittenA));
+		if (level > 2) {
+			do {
+				setupCharacter(kittenB, canvas.width, canvas.height);
+			} while (collision(opponent, kittenB));
+		} else {
+			setupCharacterOff(kittenB, canvas.width, canvas.height);
+		}
+		if (level > 4) {
+			do {
+				setupCharacter(kittenC, canvas.width, canvas.height);
+			} while (collision(opponent, kittenC));
+		} else {
+			setupCharacterOff(kittenC, canvas.width, canvas.height);
+		}
 
-		song.play();
-	};
+		// Enable scoring
+		scoringActive = true;
+		sfx.Audio.play();
+	}; // var reset = function () {
+	//////////////////////////////////////////////////////////////
 
-	// Update game objects
+
+	//////////////////////////////////////////////////////////////
+	// Update game objects every (modifier) seconds
 	var update = function (modifier) {
+
+		// Don't update if we're paused
+		if (false == scoringActive) {
+			return;
+		}
+
 		var canvas = document.getElementById("canvasGameId");
 
-		// Move player
-		// First, update the x/y velocity
+		// Move player - first, update the the velocity from user moves
 		if (38 in keysDown) { // Player holding up
 			player.dY -= player.speed * modifier;
 		}
@@ -278,101 +571,127 @@ function playGame() {
 			player.dX += player.speed * modifier;
 		}
 		// Mouse / touch moves
-		if (player.vY == 1)
-		{
-			player.dY += player.speed * modifier;
-		}
-		if (player.vY == -1)
-		{
-			player.dY -= player.speed * modifier;
-		}
-		if (player.vX == 1)
-		{
-			player.dX += player.speed * modifier;
-		}
-		if (player.vX == -1)
-		{
-			player.dX -= player.speed * modifier;
-		}
-		// Second, update the player position with the new delta
+		player.dY += player.vY * (player.speed * modifier);
+		player.dX += player.vX * (player.speed * modifier);
+		// Second, update the player position
 		player.x += player.dX;
 		player.y += player.dY;
 
-		// Collision checks
-		// Has player hit a wall?
-		if (0 > player.x){ 
-			player.dX *= -1;
-			player.x = 0;
+		// Collision checks - has player hit a wall?
+		wallBounce(player, canvas.width, canvas.height, 1);
+
+		// Move opponent
+		opponent.x += opponent.dX;
+		opponent.y += opponent.dY;
+
+		// Move kittens
+		kittenA.x += kittenA.dX;
+		kittenA.y += kittenA.dY;
+		kittenB.x += kittenB.dX;
+		kittenB.y += kittenB.dY;
+		kittenC.x += kittenC.dX;
+		kittenC.y += kittenC.dY;
+
+		// If oponent or kittens hit wall, bounce
+		wallBounce(opponent, canvas.width, canvas.height, 1);
+		wallBounce(kittenA, canvas.width, canvas.height, 1);
+		wallBounce(kittenB, canvas.width, canvas.height, 1);
+		wallBounce(kittenC, canvas.width, canvas.height, 1);
+
+		// Collision checks - player grabbed?
+		if (collision(player, opponent)){
+			player.Active = player.Ready = false;
+			++opponent.score;
+			scoringActive = false;
+			haveWeWon();
 		}
-		if (canvas.width < player.x + player.width){ 
-			player.dX *= -1;
-			player.x = canvas.width - player.width;
+		// Saved a kitten! remove kitten from play
+		if (collision(player, kittenA)) {
+			saveKitten(player, kittenA);
 		}
-		if (0 > player.y ){
-			player.dY *= -1;
-			player.y = 0;
+		if (collision(player, kittenB)) {
+			saveKitten(player, kittenB);
 		}
-		if (canvas.height < player.y + player.height){
-			player.dY *= -1;
-			player.y = canvas.height - player.height;
+		if (collision(player, kittenC)) {
+			saveKitten(player, kittenC);
+		}
+		// kitten grabbed!
+		if (collision(opponent, kittenA)) {
+			grabKitten(opponent, kittenA);
+		}
+		if (collision(opponent, kittenB)) {
+			grabKitten(opponent, kittenB);
+		}
+		if (collision(opponent, kittenC)) {
+			grabKitten(opponent, kittenC);
 		}
 
-		// Move monster
-		monster.x += monster.dX;
-		monster.y += monster.dY;
-		
-		// If monster hits wall, bounce
-		if ((0 > monster.x) || (canvas.width < monster.x + monster.width)){ 
-			monster.dX *= -1;
-		}
-		if ((0 > monster.y ) || (canvas.height < monster.y + monster.width)){
-			monster.dY *= -1;
+		// Reset if no kittens are left 
+ 		if (true == player.Ready) {
+			if (false == kittenA.Active &&
+				false == kittenB.Active &&
+				false == kittenC.Active) {
+				haveWeWon();
+			}
 		}
 
-		// Are they touching?
-		if (
-			player.x <= (monster.x + player.width)
-			&& monster.x <= (player.x + monster.width)
-			&& player.y <= (monster.y + player.height)
-			&& monster.y <= (player.y + monster.height)
-		) {
-			nextLevel();
-		}
-	};
+	}; // var update = function (modifier) {
+	//////////////////////////////////////////////////////////////
 
+
+	//////////////////////////////////////////////////////////////
 	// Draw everything
 	var render = function () {
+
+		// Get the canvas ready 
 		var canvas = document.getElementById("canvasGameId");
 		var ctx = canvas.getContext("2d");
 		ctx.fillStyle = "rgb(0, 204, 0)";
 		ctx.clearRect(0, 0, document.body.clientWidth, document.body.clientHeight);
 		ctx.fillRect(0, 0, document.body.clientWidth, document.body.clientHeight);
 
-		if (playerReady) {
-			ctx.drawImage(playerImage, player.x, player.y);
+
+		if (true == imgBackground.Ready) {
+			ctx.drawImage(imgBackground.Image, 0, 0, 
+				imgBackground.stretchWidth, imgBackground.stretchHeight);
+		}
+		if (true == player.Ready) {
+			ctx.drawImage(player.Image, player.x, player.y,
+				player.width, player.height);
+		}
+		if (true == opponent.Ready) {
+			ctx.drawImage(opponent.Image, opponent.x, opponent.y,
+				opponent.width, opponent.height);
+		}
+		if (true == kittenA.Ready) {
+			ctx.drawImage(kittenA.Image, kittenA.x, kittenA.y,
+				kittenA.width, kittenA.height);
+		}
+		if (level > 2) {
+			if (true == kittenB.Ready) {
+				ctx.drawImage(kittenB.Image, kittenB.x, kittenB.y,
+					kittenB.width, kittenB.height);
+			}
+			if (level > 4) {
+				if (true == kittenC.Ready) {
+					ctx.drawImage(kittenC.Image, kittenC.x, kittenC.y,
+						kittenC.width, kittenC.height);
+				}
+			}
 		}
 
-		if (monsterReady) {
-			ctx.drawImage(monsterImage, monster.x, monster.y);
-		}
-
-		// Score
+		// Scoreboard
 		ctx.fillStyle = "rgb(250, 250, 250)";
 		ctx.font = "24px Helvetica";
 		ctx.textAlign = "left";
 		ctx.textBaseline = "top";
-		ctx.fillText(monstersCaught + " Pokemon-Jay's caught!", 32, 32);
+		ctx.fillText("Jay picked up " + opponent.score + ", you got " + player.score, 32, 32);
 
-		// Debuglog
-		if (debug) {
-			ctx.fillStyle = "rgb(250, 250, 250)";
-			ctx.font = "16px Helvetica";
-			ctx.textAlign = "left";
-			ctx.textBaseline = "top";
-			ctx.fillText(debugRead(), 32, canvas.height -32);
-		}
 	};
+	//////////////////////////////////////////////////////////////
 
+
+	//////////////////////////////////////////////////////////////
 	// The main game loop
 	var main = function () {
 		var now = Date.now();
@@ -384,25 +703,59 @@ function playGame() {
 		then = now;
 
 		// Request to do this again ASAP
+		// Cross-browser support for requestAnimationFrame
+		var w = window;
+		requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
 		var animationThread = requestAnimationFrame(main);
 		
-		// Stop if we have won
-		if (win) {
-			cancelAnimationFrame(animationThread);
-			location.href = "youwin.html";
+		// if the pause flag is unset, reset the scoringActive flag
+		if (false == pauseActive && false == scoringActive) {
+			reset();
 		}
 		
-	};
+		// If gameOver flag is set the game is over!
+		//   (After pause to show score)
+		if (gameOver && false == pauseActive) {
+			// Turn off audio, remove eventlisteners
+			sfx.Audio.pause();
+			var canvas = document.getElementById("canvasGameId");
+			// window.removeEventListener()
+			window.removeEventListener("keydown", evtKeyDown, false);
+			window.removeEventListener("keyup", evtKeyUp, false);
+			canvas.removeEventListener("mousemove", evtMouseMove, false);
+			canvas.removeEventListener("touchstart", evtTouchStart, false);
+			canvas.removeEventListener("touchend", evtTouchEnd, false);
+			canvas.removeEventListener("touchcancel", evtTouchCancel, false);
+			canvas.removeEventListener("touchmove", evtTouchMove, false);
 
-	// Cross-browser support for requestAnimationFrame
-	var w = window;
-	requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
+			cancelAnimationFrame(animationThread);
+			var oppScore = opponent.score;
+			var playerScore = player.score;
+			if (player.score > opponent.score) {
+				location.href = "youwin.html?player=" + playerScore + "&opponent=" + oppScore;
+			} else {
+				location.href = "youlose.html?player=" + playerScore + "&opponent=" + oppScore;
+			}
+		}
+	}; // var main = function () {
+	//////////////////////////////////////////////////////////////
 
-	// Let's play this game!
+	// End of Function definitions
+	/////////////////////////////////////////////////////////
+
+	
+	/////////////////////////////////////////////////////////
+	// JavaScript execution starts here
+
 	var then = Date.now();
+	// Onetime initializations
 	setupGame();
+	// each new level initializations
 	reset();
+	// the game loop
 	main();
-
+	
 }
+
+
 
