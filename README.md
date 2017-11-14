@@ -3,9 +3,11 @@ Pokemon-Jay README.md
 
 This is a simple HTML JavaScript game I wrote as a gift for a friend on his fiftieth birthday. 
 
+The live version of this game is here: http://frostbackcrow.com/pokemon-jay/
+
 The game is handwritten by me ( Percy Tierney ) in HTML 5 and JavaScript and doesn’t use any third party libraries (not that there’s anything wrong with that – I just wanted to write it all myself).
 
-There are four html webpages, the start ( Index.html ), the gameboard ( startgame.html ), and two pages for a win or lose ( youwin.html, youlose.html ). Each of these pages are minimal. There is a stylesheet in the css folder for all the pages.
+There are four html webpages, the start ( Index.html ), the gameboard ( startgame.html ), and two pages for a win or lose ("youwin.html", "youlose.html"). Each of these pages are minimal. There is a stylesheet in the css folder for all the pages.
 
 INDEX.HMTL – This has a simple graphic (the family on an outing), a brief text intro and a “Start” button, which navigates to the next page.
 STARTGAME.HTML – There is a canvas and a hidden audio player. The JavaScript game script is automatically loaded and run. 
